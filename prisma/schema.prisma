@@ -1,0 +1,117 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PosterSource {
+  RAW
+  GITHUB
+}
+
+model Users {
+  id        String   @id @default(uuid())
+  username  String?  @unique
+  name      String
+  email     String   @unique
+  mobile    String
+  avatar    String?
+  password  String
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  store Stores?
+}
+
+model Stores {
+  id      String @id @default(uuid())
+  ownerId String @unique
+
+  name     String  @unique
+  email    String? @unique
+  mobile   String? @unique
+  password String?
+
+  url       String  @unique
+  customUrl String? @unique
+
+  logo   String?
+  colors Json?
+
+  address            String?
+  deliveryChargeType String?
+  deliveryChargeData Json?
+  serviceableArea    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner Users @relation(fields: [ownerId], references: [id])
+  categories Categories[]
+  products Products[]
+}
+
+model Categories {
+  id          String   @id @default(uuid())
+  name        String
+  storeId     String 
+  image       String?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products Products[]
+  store    Stores     @relation(fields: [storeId], references: [id])
+}
+
+// model Coupons {
+//   id          String   @id @default(uuid())
+//   name        String
+//   image       String
+//   description String
+//   createdAt   DateTime @default(now())
+//   updatedAt   DateTime @updatedAt
+
+//   products Products[]
+// }
+
+model Products {
+  id          String   @id @default(uuid())
+  name        String
+  brand       String
+  description String
+  storeId  String
+  categroyId  String
+  couponIds   String[]
+  recommended Boolean
+  images      String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  variants Variants[]
+  categroy Categories @relation(fields: [categroyId], references: [id])
+  store    Stores     @relation(fields: [storeId], references: [id])
+  // coupons  Coupons    @relation(fields: [couponIds], references: [id])
+}
+
+model Variants {
+  id           String   @id @default(uuid())
+  productId    String
+  name         String
+  attributes   Json
+  actaulPrice  Int
+  sellingPrice Int
+  recommended  Boolean
+  images       String[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  product Products @relation(fields: [productId], references: [id])
+}
